@@ -1,6 +1,0 @@
-mode: count
-github.com/albertogviana/docker-firewall/config/config.go:28.71,34.16 5 3
-github.com/albertogviana/docker-firewall/config/config.go:38.2,41.16 3 1
-github.com/albertogviana/docker-firewall/config/config.go:45.2,45.28 1 1
-github.com/albertogviana/docker-firewall/config/config.go:34.16,36.3 1 2
-github.com/albertogviana/docker-firewall/config/config.go:41.16,43.3 1 0
