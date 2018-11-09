@@ -8,6 +8,7 @@ import (
 	"github.com/coreos/go-iptables/iptables"
 )
 
+// Firewall defines the firewall structure and its dependencies
 type Firewall struct {
 	iptables *iptables.IPTables
 }
@@ -18,6 +19,7 @@ const DockerUserChain = "DOCKER-USER"
 // FilterTable is used for packet filtering on iptables
 const FilterTable = "filter"
 
+// ReturnTarget purpose is to return from a user-defined chain before rule matching on that chain has completed.
 const ReturnTarget = "RETURN"
 
 // NewFirewall returns a Firewall instance

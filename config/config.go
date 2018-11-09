@@ -21,7 +21,7 @@ type Rule struct {
 	Interface []string `yaml:"interface,omitempty"`
 	Protocol  string   `yaml:"protocol,omitempty"`
 	Port      int      `yaml:"port,omitempty"`
-	Allow     []string `yaml:"allow"`
+	Allow     []string `yaml:"allow,omitempty"`
 }
 
 // NewConfiguration reads and parse the configuration file

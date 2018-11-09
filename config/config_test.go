@@ -39,7 +39,11 @@ func (c *ConfigTestSuite) Test_Config_Success() {
 		Allow: []string{"10.1.1.1", "10.2.1.2", "172.18.9.5", "192.168.1.15"},
 	}
 
-	configExpected.Config.Rules = append(configExpected.Config.Rules, rule1, rule2)
+	rule3 := Rule{
+		Port: 8080,
+	}
+
+	configExpected.Config.Rules = append(configExpected.Config.Rules, rule1, rule2, rule3)
 
 	var configYaml = []byte(`
 config:
@@ -59,6 +63,7 @@ config:
     - 10.2.1.2
     - 172.18.9.5
     - 192.168.1.15
+  - port: 8080
 `)
 
 	afero.WriteFile(c.filesystem, "etc/docker-firewall/config.yml", configYaml, 0644)
