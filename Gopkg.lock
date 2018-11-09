@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/coreos/go-iptables"
+  packages = ["iptables"]
+  revision = "47f22b0dd3355c0ba570ba12b0b8a36bf214c04b"
+  version = "v0.4.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
@@ -125,6 +131,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "35a8b2542076b0d0a5ca2fa4225349906bdfabf4b27ef8ca556571f5778285f4"
+  inputs-digest = "dafdefa1d37657d509c3ab6ef87d882cad773e85607b6fa67799dc0aa92899d1"
   solver-name = "gps-cdcl"
   solver-version = 1
