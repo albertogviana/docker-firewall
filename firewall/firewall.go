@@ -100,7 +100,6 @@ func generateRules(rule config.Rule) [][]string {
 				tmpRules = append(tmpRules, ipRule)
 			}
 		}
-		rules = nil
 		rules = tmpRules
 	}
 
