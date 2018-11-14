@@ -1,7 +1,6 @@
 package firewall
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/albertogviana/docker-firewall/config"
@@ -38,8 +37,21 @@ func NewFirewall() (*Firewall, error) {
 
 // Apply parse the configuration and applying it in the system
 func (f *Firewall) Apply(rules []config.Rule) error {
+	iptablesRules := [][]string{
+		[]string{"-j", "DROP"},
+		[]string{"-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "RETURN"},
+	}
 	for _, rule := range rules {
-		fmt.Println(rule)
+		r := generateRules(rule)
+		iptablesRules = append(iptablesRules, r...)
+	}
+
+	f.ClearRule()
+	for _, iptRule := range iptablesRules {
+		err := f.iptables.Insert(FilterTable, DockerUserChain, 1, iptRule...)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -81,21 +93,42 @@ func generateRules(rule config.Rule) [][]string {
 		}
 	}
 
+	if rule.Protocol == "" {
+		tmpRules := [][]string{}
+		if len(rules) > 0 {
+			for _, p := range rules {
+				tcp := []string{}
+				tcp = append(tcp, "-p", "tcp", "-m", "tcp")
+				tcp = append(tcp, p...)
+				tmpRules = append(tmpRules, tcp)
+
+				udp := []string{}
+				udp = append(udp, "-p", "udp", "-m", "udp")
+				udp = append(udp, p...)
+				tmpRules = append(tmpRules, udp)
+			}
+		}
+
+		if len(rules) == 0 {
+			tcp := []string{}
+			tcp = append(tcp, "-p", "tcp", "-m", "tcp")
+			tcp = append(tcp, baseRule...)
+			tmpRules = append(tmpRules, tcp)
+
+			udp := []string{}
+			udp = append(udp, "-p", "udp", "-m", "udp")
+			udp = append(udp, baseRule...)
+			tmpRules = append(tmpRules, udp)
+		}
+		rules = tmpRules
+	}
+
 	if len(rule.Allow) > 0 {
 		tmpRules := [][]string{}
 		for _, ip := range rule.Allow {
-			if len(rules) > 0 {
-				for _, v := range rules {
-					ipRule := []string{}
-					ipRule = append(ipRule, v...)
-					ipRule = append(ipRule, "-s", ip)
-					tmpRules = append(tmpRules, ipRule)
-				}
-			}
-
-			if len(rules) == 0 {
+			for _, v := range rules {
 				ipRule := []string{}
-				ipRule = append(ipRule, baseRule...)
+				ipRule = append(ipRule, v...)
 				ipRule = append(ipRule, "-s", ip)
 				tmpRules = append(tmpRules, ipRule)
 			}
