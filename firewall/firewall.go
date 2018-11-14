@@ -38,8 +38,8 @@ func NewFirewall() (*Firewall, error) {
 // Apply parse the configuration and applying it in the system
 func (f *Firewall) Apply(rules []config.Rule) error {
 	iptablesRules := [][]string{
-		[]string{"-j", "DROP"},
-		[]string{"-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "RETURN"},
+		{"-j", "DROP"},
+		{"-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "RETURN"},
 	}
 	for _, rule := range rules {
 		r := generateRules(rule)
