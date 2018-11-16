@@ -122,20 +122,6 @@ func generateRules(rule config.Rule) [][]string {
 
 	if rule.Protocol == "" {
 		tmpRules := [][]string{}
-		if len(rules) > 0 {
-			for _, p := range rules {
-				tcp := []string{}
-				tcp = append(tcp, "-p", "tcp", "-m", "tcp")
-				tcp = append(tcp, p...)
-				tmpRules = append(tmpRules, tcp)
-
-				udp := []string{}
-				udp = append(udp, "-p", "udp", "-m", "udp")
-				udp = append(udp, p...)
-				tmpRules = append(tmpRules, udp)
-			}
-		}
-
 		if len(rules) == 0 {
 			tcp := []string{}
 			tcp = append(tcp, "-p", "tcp", "-m", "tcp")
@@ -172,13 +158,6 @@ func generateRules(rule config.Rule) [][]string {
 			targetRule = append(targetRule, "-j", ReturnTarget)
 			rules = append(rules, targetRule)
 		}
-	}
-
-	if len(rules) == 0 {
-		targetRule := []string{}
-		targetRule = append(targetRule, baseRule...)
-		targetRule = append(targetRule, "-j", ReturnTarget)
-		rules = append(rules, targetRule)
 	}
 
 	return rules
