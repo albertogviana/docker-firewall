@@ -7,9 +7,6 @@ go:
 
 dist: xenial
 
-services:
-  - docker
-
 # Only clone the most recent commit.
 git:
   depth: 1
@@ -23,4 +20,6 @@ before_script:
   - make dep
 
 script:
+  # Here sudo -E env "PATH=$PATH" make test is required for running tests with
+  # sudo permissions since it is testing iptables, sudo or root permissions are required.
   -  sudo -E env "PATH=$PATH" make test
