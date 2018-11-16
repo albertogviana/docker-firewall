@@ -21,6 +21,11 @@ const FilterTable = "filter"
 // ReturnTarget purpose is to return from a user-defined chain before rule matching on that chain has completed.
 const ReturnTarget = "RETURN"
 
+var baseRules = [][]string{
+	{"-j", "DROP"},
+	{"-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "RETURN"},
+}
+
 // NewFirewall returns a Firewall instance
 func NewFirewall() (*Firewall, error) {
 	firewall := &Firewall{}
@@ -37,10 +42,8 @@ func NewFirewall() (*Firewall, error) {
 
 // Apply parse the configuration and applying it in the system
 func (f *Firewall) Apply(rules []config.Rule) error {
-	iptablesRules := [][]string{
-		{"-j", "DROP"},
-		{"-m", "conntrack", "--ctstate", "RELATED,ESTABLISHED", "-j", "RETURN"},
-	}
+	iptablesRules := baseRules
+
 	for _, rule := range rules {
 		r := generateRules(rule)
 		iptablesRules = append(iptablesRules, r...)
@@ -55,6 +58,30 @@ func (f *Firewall) Apply(rules []config.Rule) error {
 	}
 
 	return nil
+}
+
+// Verify checks if the rules in the configuration files where applied.
+func (f *Firewall) Verify(rules []config.Rule) (bool, error) {
+	iptablesRules := baseRules
+
+	for _, rule := range rules {
+		r := generateRules(rule)
+		iptablesRules = append(iptablesRules, r...)
+	}
+
+	result := true
+	for _, rule := range iptablesRules {
+		exists, err := f.iptables.Exists(FilterTable, DockerUserChain, rule...)
+		if err != nil {
+			return false, err
+		}
+
+		if !exists {
+			result = false
+		}
+	}
+
+	return result, nil
 }
 
 // ClearRule cleans the DOCKER-USER chain
@@ -128,8 +155,8 @@ func generateRules(rule config.Rule) [][]string {
 		for _, ip := range rule.Allow {
 			for _, v := range rules {
 				ipRule := []string{}
-				ipRule = append(ipRule, v...)
 				ipRule = append(ipRule, "-s", ip)
+				ipRule = append(ipRule, v...)
 				tmpRules = append(tmpRules, ipRule)
 			}
 		}

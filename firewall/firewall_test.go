@@ -70,14 +70,9 @@ func (f *FirewallTestSuite) Test_Rules() {
 	ipt, err := iptables.New()
 	f.NoError(err)
 
-	for _, rule := range expectedRules {
-		exists, err := ipt.Exists(FilterTable, DockerUserChain, rule...)
-		f.NoError(err)
-
-		var msg interface{}
-		msg = fmt.Sprintf("Rule %s not found", rule)
-		f.True(exists, msg)
-	}
+	verifyRules, err := firewall.Verify(configuration.Config.Rules)
+	f.NoError(err)
+	f.True(verifyRules)
 
 	firewall.ClearRule()
 	for _, rule := range expectedRules {
@@ -103,10 +98,10 @@ func (f *FirewallTestSuite) Test_GenerateRules() {
 				Allow:     []string{"10.1.1.1", "192.168.10.11"},
 			},
 			[][]string{
-				{"-i", "eth0", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "10.1.1.1", "-j", "RETURN"},
-				{"-i", "eth1", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "10.1.1.1", "-j", "RETURN"},
-				{"-i", "eth0", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "192.168.10.11", "-j", "RETURN"},
-				{"-i", "eth1", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "192.168.10.11", "-j", "RETURN"},
+				{"-s", "10.1.1.1", "-i", "eth0", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "10.1.1.1", "-i", "eth1", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "192.168.10.11", "-i", "eth0", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "192.168.10.11", "-i", "eth1", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
 			},
 		},
 		{
@@ -115,14 +110,14 @@ func (f *FirewallTestSuite) Test_GenerateRules() {
 				Allow: []string{"10.1.1.1", "10.2.1.2", "172.18.9.5", "192.168.1.15"},
 			},
 			[][]string{
-				{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "10.1.1.1", "-j", "RETURN"},
-				{"-p", "udp", "-m", "udp", "--dport", "8080", "-s", "10.1.1.1", "-j", "RETURN"},
-				{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "10.2.1.2", "-j", "RETURN"},
-				{"-p", "udp", "-m", "udp", "--dport", "8080", "-s", "10.2.1.2", "-j", "RETURN"},
-				{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "172.18.9.5", "-j", "RETURN"},
-				{"-p", "udp", "-m", "udp", "--dport", "8080", "-s", "172.18.9.5", "-j", "RETURN"},
-				{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-s", "192.168.1.15", "-j", "RETURN"},
-				{"-p", "udp", "-m", "udp", "--dport", "8080", "-s", "192.168.1.15", "-j", "RETURN"},
+				{"-s", "10.1.1.1", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "10.1.1.1", "-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "10.2.1.2", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "10.2.1.2", "-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "172.18.9.5", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "172.18.9.5", "-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "192.168.1.15", "-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
+				{"-s", "192.168.1.15", "-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
 			},
 		},
 		{

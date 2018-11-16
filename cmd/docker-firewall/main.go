@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 
 	"github.com/albertogviana/docker-firewall/config"
 	"github.com/albertogviana/docker-firewall/firewall"
@@ -77,20 +78,59 @@ func start() {
 		log.Fatal(err)
 	}
 
-	// setup signal catching
-	sigs := make(chan os.Signal, 1)
-
-	// catch all signals since not explicitly listing
-	signal.Notify(sigs)
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT)
+	exitChan := make(chan int)
 
 	go func() {
-		s := <-sigs
-		log.Printf("Received signal: %s", s)
-		stop()
-		os.Exit(0)
+		for {
+			s := <-signalChan
+			log.Printf("Received signal: %s", s)
+
+			switch s {
+			// kill -SIGHUP XXXX
+			case syscall.SIGHUP:
+				log.Println("Reloading configuration")
+				stop()
+				start()
+
+			// kill -SIGTERM XXXX
+			case syscall.SIGTERM:
+				log.Println("stop and core dump")
+				stop()
+				exitChan <- 0
+
+			// kill -SIGQUIT XXXX
+			case syscall.SIGQUIT:
+				log.Println("Stopping the service")
+				stop()
+				exitChan <- 0
+
+			default:
+				log.Println("Unknown signal.")
+				stop()
+				exitChan <- 1
+			}
+		}
 	}()
 
-	select {}
+	for {
+		time.Sleep(10 * time.Second)
+		verify, err := firewall.Verify(config.Config.Rules)
+		if err != nil {
+			log.Printf("Something went wrong: %s", err)
+			stop()
+			exitChan <- 1
+		}
+
+		if !verify {
+			log.Println("Applying rules again.")
+			firewall.Apply(config.Config.Rules)
+		}
+	}
+
+	code := <-exitChan
+	os.Exit(code)
 }
 
 func stop() {
@@ -111,9 +151,9 @@ func stop() {
 		log.Fatal(err)
 	}
 
-	err = syscall.Kill(pid, syscall.SIGKILL)
+	err = syscall.Kill(pid, syscall.SIGTERM)
 	if err != nil {
-		log.Println("successful shutdown process")
+		log.Println(err)
 	}
 
 	os.Remove(pidFile)
