@@ -7,6 +7,9 @@ go:
 
 dist: xenial
 
+services:
+  - docker
+
 # Only clone the most recent commit.
 git:
   depth: 1
@@ -20,4 +23,4 @@ before_script:
   - make dep
 
 script:
-  - sudo make test
+  -  sudo -E env "PATH=$PATH" make test

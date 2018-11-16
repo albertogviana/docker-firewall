@@ -11,7 +11,7 @@ verify: go_fmt go_vet go_lint test
 
 .PHONY: build
 build: 
-	go build -o cmd/docker-firewall/docker-firewall cmd/docker-firewall/main.go
+	CGO_ENABLED=0 GOOS=linux go build -o cmd/docker-firewall/docker-firewall cmd/docker-firewall/main.go
 
 .PHONY: test
 test:
