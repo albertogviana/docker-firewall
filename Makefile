@@ -15,7 +15,7 @@ build:
 
 .PHONY: test
 test:
-	GOCACHE=off go test -v -cover -v -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
+	GOCACHE=off go test -v -cover -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
 
 .PHONY: go_vet
 go_vet:
