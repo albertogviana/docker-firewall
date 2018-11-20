@@ -18,15 +18,32 @@ import (
 var pidFile = "/tmp/docker-firewall"
 var configPath = "/etc/docker-firewall"
 
+var (
+	version   string
+	gitCommit string
+)
+
 func main() {
 	if os.Getenv("CONFIG_PATH") != "" {
 		configPath = os.Getenv("CONFIG_PATH")
 	}
 
+	if version == "" {
+		version = "not specified"
+	}
+
+	if gitCommit == "" {
+		gitCommit = "not specified"
+	}
+
+	cli.VersionPrinter = func(c *cli.Context) {
+		fmt.Printf("version: %s\ngit commit: %s\n", c.App.Version, gitCommit)
+	}
+
 	app := cli.NewApp()
 	app.Name = "docker-firewall"
 	app.Usage = "Easy way to apply firewall rules to block docker services."
-	app.Version = "0.0.0"
+	app.Version = version
 	app.Commands = []cli.Command{
 		{
 			Name:  "start",

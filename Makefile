@@ -1,3 +1,6 @@
+version=''
+gitCommit=$(shell git rev-parse --verify HEAD)
+
 .PHONY: install-dep
 install-dep:
 	export DEP_RELEASE_TAG=v0.4.1; curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
@@ -10,8 +13,8 @@ dep:
 verify: go_fmt go_vet go_lint test
 
 .PHONY: build
-build: 
-	CGO_ENABLED=0 GOOS=linux go build -o cmd/docker-firewall/docker-firewall cmd/docker-firewall/main.go
+build:
+	CGO_ENABLED=0 GOOS=linux go build -v -ldflags '-X "main.version=${version}" -X "main.gitCommit=${gitCommit}"' -o cmd/docker-firewall/docker-firewall cmd/docker-firewall/main.go
 
 .PHONY: test
 test:
