@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/coreos/go-iptables/iptables"
-
 	"github.com/albertogviana/docker-firewall/config"
+	"github.com/coreos/go-iptables/iptables"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -43,7 +42,11 @@ func (f *FirewallTestSuite) Test_Rules() {
 		Port: 8080,
 	}
 
-	configuration.Config.Rules = append(configuration.Config.Rules, rule1, rule2, rule3)
+	rule4 := config.Rule{
+		Interface: []string{"docker_gwbridge"},
+	}
+
+	configuration.Config.Rules = append(configuration.Config.Rules, rule1, rule2, rule3, rule4)
 
 	firewall, err := NewFirewall()
 	f.NoError(err)
@@ -65,24 +68,34 @@ func (f *FirewallTestSuite) Test_Rules() {
 		{"-s", "192.168.1.15", "-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
 		{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
 		{"-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
+		{"-i", "docker_gwbridge", "-j", "RETURN"},
 	}
 
 	ipt, err := iptables.New()
 	f.NoError(err)
 
-	verifyRules, err := firewall.Verify(configuration.Config.Rules)
-	f.NoError(err)
-	f.True(verifyRules)
-
-	firewall.ClearRule()
 	for _, rule := range expectedRules {
 		exists, err := ipt.Exists(FilterTable, DockerUserChain, rule...)
 		f.NoError(err)
 
 		var msg interface{}
 		msg = fmt.Sprintf("Rule %s not found", rule)
-		f.False(exists, msg)
+		f.True(exists, msg)
 	}
+
+	verifyRules, err := firewall.Verify(configuration.Config.Rules)
+	f.NoError(err)
+	f.True(verifyRules)
+
+	// firewall.ClearRule()
+	// for _, rule := range expectedRules {
+	// 	exists, err := ipt.Exists(FilterTable, DockerUserChain, rule...)
+	// 	f.NoError(err)
+
+	// 	var msg interface{}
+	// 	msg = fmt.Sprintf("Rule %s not found", rule)
+	// 	f.False(exists, msg)
+	// }
 }
 
 func (f *FirewallTestSuite) Test_GenerateRules() {
@@ -127,6 +140,14 @@ func (f *FirewallTestSuite) Test_GenerateRules() {
 			[][]string{
 				{"-p", "tcp", "-m", "tcp", "--dport", "8080", "-j", "RETURN"},
 				{"-p", "udp", "-m", "udp", "--dport", "8080", "-j", "RETURN"},
+			},
+		},
+		{
+			config.Rule{
+				Interface: []string{"docker_gwbridge"},
+			},
+			[][]string{
+				{"-i", "docker_gwbridge", "-j", "RETURN"},
 			},
 		},
 	}

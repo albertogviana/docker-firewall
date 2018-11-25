@@ -18,7 +18,9 @@ build:
 
 .PHONY: test
 test:
-	GOCACHE=off go test -v -cover -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
+	# Here sudo -E env "PATH=$PATH" make test is required for running tests with
+  	# sudo permissions since it is testing iptables, sudo or root permissions are required.
+	sudo -E env PATH="$(PATH)" GOCACHE=off go test -v -cover -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
 
 .PHONY: go_vet
 go_vet:
