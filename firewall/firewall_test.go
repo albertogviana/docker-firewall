@@ -87,15 +87,15 @@ func (f *FirewallTestSuite) Test_Rules() {
 	f.NoError(err)
 	f.True(verifyRules)
 
-	// firewall.ClearRule()
-	// for _, rule := range expectedRules {
-	// 	exists, err := ipt.Exists(FilterTable, DockerUserChain, rule...)
-	// 	f.NoError(err)
+	firewall.ClearRule()
+	for _, rule := range expectedRules {
+		exists, err := ipt.Exists(FilterTable, DockerUserChain, rule...)
+		f.NoError(err)
 
-	// 	var msg interface{}
-	// 	msg = fmt.Sprintf("Rule %s not found", rule)
-	// 	f.False(exists, msg)
-	// }
+		var msg interface{}
+		msg = fmt.Sprintf("Rule %s not found", rule)
+		f.False(exists, msg)
+	}
 }
 
 func (f *FirewallTestSuite) Test_GenerateRules() {
