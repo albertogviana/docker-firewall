@@ -65,7 +65,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("there was an error and it was not possible to run the docker-firewall: %v", err)
 	}
 }
 
@@ -73,26 +73,26 @@ func start() {
 	log.Println("Starting docker-firewall")
 	config, err := config.NewConfiguration(configPath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to read the configuration file: %v", err)
 	}
 
 	firewall, err := firewall.NewFirewall()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to start firewall: %v", err)
 	}
 
 	log.Println("Applying rules")
 	err = firewall.Apply(config.Config.Rules)
 	if err != nil {
 		stop()
-		log.Fatal(err)
+		log.Fatalf("it was not possible to apply the rules: %v", err)
 	}
 	log.Println("Rules applied")
 
 	err = writePidFile()
 	if err != nil {
 		stop()
-		log.Fatal(err)
+		log.Fatalf("failed to create pid file with error: %v", err)
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -158,22 +158,24 @@ func stop() {
 
 	firewall.ClearRule()
 
-	piddata, err := ioutil.ReadFile(pidFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// Convert the file contents to an integer.
-	pid, err := strconv.Atoi(string(piddata))
-	if err != nil {
-		log.Fatal(err)
-	}
+	if _, err := os.Stat(pidFile); os.IsExist(err) {
+		piddata, err := ioutil.ReadFile(pidFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		// Convert the file contents to an integer.
+		pid, err := strconv.Atoi(string(piddata))
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	err = syscall.Kill(pid, syscall.SIGTERM)
-	if err != nil {
-		log.Println(err)
-	}
+		err = syscall.Kill(pid, syscall.SIGTERM)
+		if err != nil {
+			log.Println(err)
+		}
 
-	os.Remove(pidFile)
+		os.Remove(pidFile)
+	}
 }
 
 func writePidFile() error {

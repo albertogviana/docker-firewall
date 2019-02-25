@@ -1,6 +1,7 @@
 package firewall
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/albertogviana/docker-firewall/config"
@@ -53,6 +54,7 @@ func (f *Firewall) Apply(rules []config.Rule) error {
 	for _, iptRule := range iptablesRules {
 		err := f.iptables.Insert(FilterTable, DockerUserChain, 1, iptRule...)
 		if err != nil {
+			log.Println(iptRule)
 			return err
 		}
 	}
