@@ -16,7 +16,6 @@ notifications:
   email: false
 
 before_script:
-  - make install-dep
   - make dep
 
 script:
