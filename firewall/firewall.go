@@ -54,7 +54,7 @@ func (f *Firewall) Apply(rules []config.Rule) error {
 	for _, iptRule := range iptablesRules {
 		err := f.iptables.Insert(FilterTable, DockerUserChain, 1, iptRule...)
 		if err != nil {
-			log.Println(iptRule)
+			log.Fatalf("Error Insert rule: %v", iptRule)
 			return err
 		}
 	}
@@ -123,7 +123,6 @@ func generateRules(rule config.Rule) [][]string {
 	}
 
 	if rule.Protocol == "" {
-
 		if len(rules) == 0 {
 			tmpRules := [][]string{}
 			tcp := []string{}
@@ -143,11 +142,20 @@ func generateRules(rule config.Rule) [][]string {
 	if len(rule.Allow) > 0 {
 		tmpRules := [][]string{}
 		for _, ip := range rule.Allow {
-			for _, v := range rules {
-				ipRule := []string{}
-				ipRule = append(ipRule, "-s", ip)
-				ipRule = append(ipRule, v...)
-				tmpRules = append(tmpRules, ipRule)
+			if len(rules) > 0 {
+				for _, v := range rules {
+					ipRule := []string{}
+					ipRule = append(ipRule, "-s", ip)
+					ipRule = append(ipRule, v...)
+					tmpRules = append(tmpRules, ipRule)
+				}
+			} else {
+				if rule.Protocol != "" {
+					ipRule := []string{}
+					ipRule = append(ipRule, "-s", ip)
+					ipRule = append(ipRule, baseRule...)
+					tmpRules = append(tmpRules, ipRule)
+				}
 			}
 		}
 		rules = tmpRules

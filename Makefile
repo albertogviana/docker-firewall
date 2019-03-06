@@ -1,13 +1,11 @@
 version=''
 gitCommit=$(shell git rev-parse --verify HEAD)
 
-.PHONY: install-dep
-install-dep:
-	export DEP_RELEASE_TAG=v0.4.1; curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+export GO111MODULE=on
 
 .PHONY: dep
 dep:
-	dep ensure
+	go mod download
 
 .PHONY: verify
 verify: go_fmt go_vet go_lint test
@@ -20,7 +18,7 @@ build:
 test:
 	# Here sudo -E env "PATH=$PATH" make test is required for running tests with
   	# sudo permissions since it is testing iptables, sudo or root permissions are required.
-	sudo -E env PATH="$(PATH)" GOCACHE=off go test -v -cover -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
+	sudo -E env PATH="$(PATH)" go test -v -cover -coverprofile=coverage.out  $$(go list ./... | grep -v '/vendor/')
 
 .PHONY: go_vet
 go_vet:

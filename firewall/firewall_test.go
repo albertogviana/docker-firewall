@@ -150,6 +150,17 @@ func (f *FirewallTestSuite) Test_GenerateRules() {
 				{"-i", "docker_gwbridge", "-j", "RETURN"},
 			},
 		},
+		{
+			config.Rule{
+				Protocol: "tcp",
+				Port:     3000,
+				Allow:    []string{"10.1.1.1", "192.168.10.11"},
+			},
+			[][]string{
+				{"-s", "10.1.1.1", "-p", "tcp", "-m", "tcp", "--dport", "3000", "-j", "RETURN"},
+				{"-s", "192.168.10.11", "-p", "tcp", "-m", "tcp", "--dport", "3000", "-j", "RETURN"},
+			},
+		},
 	}
 
 	for _, test := range tests {
