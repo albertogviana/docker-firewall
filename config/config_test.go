@@ -30,13 +30,14 @@ func (c *ConfigTestSuite) Test_Config_Success() {
 	rule1 := Rule{
 		Interface: []string{"eth0"},
 		Protocol:  "tcp",
-		Port:      8080,
+		Port:      3000,
 		Allow:     []string{"10.1.1.1", "10.2.1.2", "172.18.9.5", "192.168.1.15"},
 	}
 
 	rule2 := Rule{
-		Port:  8080,
-		Allow: []string{"10.1.1.1", "10.2.1.2", "172.18.9.5", "192.168.1.15"},
+		Port:     6000,
+		Protocol: "tcp",
+		Allow:    []string{"10.1.1.1", "10.2.1.2", "172.18.9.5", "192.168.1.15"},
 	}
 
 	rule3 := Rule{
@@ -48,21 +49,22 @@ func (c *ConfigTestSuite) Test_Config_Success() {
 	var configYaml = []byte(`
 config:
   rules:
-  - interface: 
+  - interface:
     - eth0
     protocol: tcp
-    port: 8080
+    port: 3000
     allow:
     - 10.1.1.1
     - 10.2.1.2
     - 172.18.9.5
     - 192.168.1.15
-  - port: 8080
+  - port: 6000
     allow:
     - 10.1.1.1
     - 10.2.1.2
     - 172.18.9.5
     - 192.168.1.15
+    protocol: tcp
   - port: 8080
 `)
 
@@ -80,7 +82,7 @@ config:
 
 func (c *ConfigTestSuite) Test_Config_FileNotFound() {
 	_, err := NewConfiguration("etc1/docker-firewall")
-	c.Error(err, "configuration error: Config File \"config\" Not Found in")
+	c.EqualError(err, "etc1/docker-firewall/config.yml did not exist: stat etc1/docker-firewall/config.yml: no such file or directory")
 }
 
 func (c *ConfigTestSuite) Test_Config_UnableToDecode() {
@@ -92,5 +94,5 @@ test::alberto
 
 	afero.WriteFile(c.filesystem, "etc/docker-firewall/config.yml", configYaml, 0644)
 	_, err := NewConfiguration("etc/docker-firewall")
-	c.Error(err, "configuration error: While parsing config: yaml: line 5: could not find expected ':'")
+	c.Errorf(err, "configuration error: While parsing config: yaml: line 5: could not find expected ':'")
 }

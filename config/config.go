@@ -2,8 +2,11 @@ package config
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 // Configuration defines the configuration structure
@@ -26,20 +29,20 @@ type Rule struct {
 
 // NewConfiguration reads and parse the configuration file
 func NewConfiguration(configDirectory string) (*Configuration, error) {
-	viper.SetConfigType("yaml")
-	viper.SetConfigName("config")
-	viper.AddConfigPath(configDirectory)
-	err := viper.ReadInConfig()
+	if _, err := os.Stat(path.Join(configDirectory, "config.yml")); err != nil {
+		return nil, fmt.Errorf("%s/config.yml did not exist: %v", configDirectory, err)
+	}
 
+	data, err := ioutil.ReadFile(path.Join(configDirectory, "config.yml"))
 	if err != nil {
-		return &Configuration{}, fmt.Errorf("configuration error: %s", err)
+		return nil, fmt.Errorf("fail to read the file %s: %v", configDirectory, err)
 	}
 
 	var configuration Configuration
 
-	err = viper.Unmarshal(&configuration)
+	err = yaml.Unmarshal(data, &configuration)
 	if err != nil {
-		return &Configuration{}, fmt.Errorf("unable to decode into struct, %v", err)
+		return nil, fmt.Errorf("unable to decode into struct, %v", err)
 	}
 
 	return &configuration, nil
