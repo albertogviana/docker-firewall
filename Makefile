@@ -41,4 +41,4 @@ endif
 
 .PHONY: clean-vendor
 clean-vendor:
-	find ./vendor -type l | xargs rm -rf
+	find ./vendor -type d | xargs rm -rf
