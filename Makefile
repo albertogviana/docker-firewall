@@ -30,7 +30,7 @@ go_fmt:
 
 .PHONY: go_lint
 go_lint: install-golint
-	golint $(go list ./... | grep -v /vendor)
+	golint $$(go list ./... | grep -v /vendor)
 
 .PHONY: install-golint
 install-golint:
