@@ -7,6 +7,10 @@ export GO111MODULE=on
 dep:
 	go mod download
 
+.PHONY: mod_vendor
+mod_vendor:
+	go mod vendor
+
 .PHONY: verify
 verify: go_fmt go_vet go_lint test
 
